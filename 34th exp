@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_RECORDS 100
+#define MAX_SIZE 50
+
+// Structure for a file
+typedef struct {
+    char name[MAX_SIZE];
+    char records[MAX_RECORDS][MAX_SIZE];
+    int recordCount;
+} File;
+
+// Function to create a file
+void createFile(File *file, char *name) {
+    strcpy(file->name, name);
+    file->recordCount = 0;
+    printf("File '%s' created successfully.\n", name);
+}
+
+// Function to add record sequentially
+void addRecord(File *file, char *record) {
+    if (file->recordCount < MAX_RECORDS) {
+        strcpy(file->records[file->recordCount], record);
+        file->recordCount++;
+        printf("Record '%s' added successfully.\n", record);
+    } else {
+        printf("File is full. Cannot add more records.\n");
+    }
+}
+
+// Function to display all records sequentially
+void displayFile(File *file) {
+    printf("\nDisplaying all records in file '%s':\n", file->name);
+    for (int i = 0; i < file->recordCount; i++) {
+        printf("%d: %s\n", i + 1, file->records[i]);
+    }
+}
+
+// Function to access a specific record sequentially
+void accessRecord(File *file, int recordNumber) {
+    if (recordNumber > 0 && recordNumber <= file->recordCount) {
+        printf("\nAccessing record %d:\n", recordNumber);
+        for (int i = 0; i < recordNumber; i++) {
+            printf("Record %d: %s\n", i + 1, file->records[i]);
+        }
+    } else {
+        printf("Invalid record number.\n");
+    }
+}
+
+int main() {
+    File file;
+    int choice, recordNumber;
+    char fileName[MAX_SIZE], record[MAX_SIZE];
+
+    printf("Enter file name to create: ");
+    scanf("%s", fileName);
+    createFile(&file, fileName);
+
+    while (1) {
+        printf("\n--- Sequential File Allocation Menu ---\n");
+        printf("1. Add Record\n");
+        printf("2. Display All Records\n");
+        printf("3. Access a Record\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter record to add: ");
+                getchar(); // consume newline
+                fgets(record, sizeof(record), stdin);
+                record[strcspn(record, "\n")] = '\0'; // remove newline
+                addRecord(&file, record);
+                break;
+            case 2:
+                displayFile(&file);
+                break;
+            case 3:
+                printf("Enter record number to access: ");
+                scanf("%d", &recordNumber);
+                accessRecord(&file, recordNumber);
+                break;
+            case 4:
+                exit(0);
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    }
+
+    return 0;
+}
