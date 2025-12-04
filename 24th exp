@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <fcntl.h>    // For open()
+#include <unistd.h>   // For read(), write(), close()
+#include <string.h>
+#include <stdlib.h>
+
+int main() {
+    int fd;
+    char filename[100];
+    char writeBuffer[1024];
+    char readBuffer[1024];
+    ssize_t bytesRead, bytesWritten;
+
+    // 1. Create or open a file
+    printf("Enter file name to create/open: ");
+    scanf("%s", filename);
+
+    fd = open(filename, O_CREAT | O_RDWR, 0666); // Read/Write, create if not exist
+    if (fd == -1) {
+        perror("Error opening file");
+        exit(1);
+    }
+    printf("File '%s' opened successfully with file descriptor %d.\n", filename, fd);
+
+    // 2. Write to the file
+    printf("Enter data to write into file: ");
+    getchar(); // Clear newline from buffer
+    fgets(writeBuffer, sizeof(writeBuffer), stdin);
+
+    bytesWritten = write(fd, writeBuffer, strlen(writeBuffer));
+    if (bytesWritten == -1) {
+        perror("Error writing to file");
+        close(fd);
+        exit(1);
+    }
+    printf("%ld bytes written to file.\n", bytesWritten);
+
+    // 3. Move file pointer to beginning
+    lseek(fd, 0, SEEK_SET);
+
+    // 4. Read from the file
+    bytesRead = read(fd, readBuffer, sizeof(readBuffer) - 1);
+    if (bytesRead == -1) {
+        perror("Error reading from file");
+        close(fd);
+        exit(1);
+    }
+    readBuffer[bytesRead] = '\0'; // Null-terminate string
+
+    printf("Data read from file:\n%s\n", readBuffer);
+
+    // 5. Close the file
+    if (close(fd) == -1) {
+        perror("Error closing file");
+        exit(1);
+    }
+    printf("File closed successfully.\n");
+
+    return 0;
+}
