@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int n, head, diskSize, i, j;
+    
+    printf("Enter the number of disk requests: ");
+    scanf("%d", &n);
+
+    int requests[n];
+    printf("Enter the disk request sequence: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &requests[i]);
+
+    printf("Enter initial head position: ");
+    scanf("%d", &head);
+
+    printf("Enter disk size (number of cylinders): ");
+    scanf("%d", &diskSize);
+
+    int left[n+1], right[n+1]; // include end of disk
+    int lcount = 0, rcount = 0;
+    int totalSeek = 0;
+
+    // Separate requests into left and right of head
+    for (i = 0; i < n; i++) {
+        if (requests[i] < head)
+            left[lcount++] = requests[i];
+        else
+            right[rcount++] = requests[i];
+    }
+
+    // Add disk ends
+    left[lcount++] = 0;
+    right[rcount++] = diskSize - 1;
+
+    // Sort left in ascending order, right in ascending order
+    for (i = 0; i < lcount-1; i++)
+        for (j = i+1; j < lcount; j++)
+            if (left[i] > left[j]) { int temp = left[i]; left[i] = left[j]; left[j] = temp; }
+
+    for (i = 0; i < rcount-1; i++)
+        for (j = i+1; j < rcount; j++)
+            if (right[i] > right[j]) { int temp = right[i]; right[i] = right[j]; right[j] = temp; }
+
+    printf("\nC-SCAN Disk Scheduling Order:\n");
+    printf("%d -> ", head);
+
+    // Service right side first
+    for (i = 0; i < rcount; i++) {
+        totalSeek += abs(right[i] - head);
+        head = right[i];
+        printf("%d", head);
+        if (i != rcount-1 || lcount > 0) printf(" -> ");
+    }
+
+    // Jump from end to start
+    totalSeek += abs((diskSize - 1) - 0); // jump from last to first
+    head = 0;
+
+    // Service left side
+    for (i = 0; i < lcount; i++) {
+        totalSeek += abs(left[i] - head);
+        head = left[i];
+        printf("%d", head);
+        if (i != lcount-1) printf(" -> ");
+    }
+
+    printf("\n\nTotal Seek Time: %d\n", totalSeek);
+    printf("Average Seek Time: %.2f\n", (float)totalSeek / n);
+
+    return 0;
+}
