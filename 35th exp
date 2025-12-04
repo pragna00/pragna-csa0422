@@ -1,0 +1,96 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_BLOCKS 100
+#define BLOCK_SIZE 50
+
+typedef struct {
+    char fileName[50];
+    int indexBlock[MAX_BLOCKS];  // stores block numbers
+    int blockCount;
+    char blocks[MAX_BLOCKS][BLOCK_SIZE]; // actual data in blocks
+} File;
+
+// Function to create a file
+void createFile(File *file, char *name) {
+    strcpy(file->fileName, name);
+    file->blockCount = 0;
+    printf("File '%s' created successfully.\n", name);
+}
+
+// Function to add a block to the file
+void addBlock(File *file, char *data) {
+    if (file->blockCount < MAX_BLOCKS) {
+        int blockNumber = file->blockCount; // assigning block numbers sequentially
+        file->indexBlock[file->blockCount] = blockNumber;
+        strcpy(file->blocks[file->blockCount], data);
+        file->blockCount++;
+        printf("Block %d added with data: %s\n", blockNumber, data);
+    } else {
+        printf("Maximum blocks reached. Cannot add more.\n");
+    }
+}
+
+// Function to display file blocks using index block
+void displayFile(File *file) {
+    printf("\nFile: %s\n", file->fileName);
+    printf("Index Block -> Points to Data Blocks\n");
+    for (int i = 0; i < file->blockCount; i++) {
+        printf("Index %d -> Block %d: %s\n", i, file->indexBlock[i], file->blocks[i]);
+    }
+}
+
+// Function to access a specific block directly
+void accessBlock(File *file, int blockNumber) {
+    if (blockNumber >= 0 && blockNumber < file->blockCount) {
+        int physicalBlock = file->indexBlock[blockNumber];
+        printf("Accessing Block %d: %s\n", physicalBlock, file->blocks[blockNumber]);
+    } else {
+        printf("Invalid block number.\n");
+    }
+}
+
+int main() {
+    File file;
+    char fileName[50], data[BLOCK_SIZE];
+    int choice, blockNumber;
+
+    printf("Enter file name to create: ");
+    scanf("%s", fileName);
+    createFile(&file, fileName);
+
+    while (1) {
+        printf("\n--- Indexed File Allocation Menu ---\n");
+        printf("1. Add Block\n");
+        printf("2. Display File Blocks\n");
+        printf("3. Access a Block\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter data for the block: ");
+                getchar(); // consume newline
+                fgets(data, sizeof(data), stdin);
+                data[strcspn(data, "\n")] = '\0'; // remove newline
+                addBlock(&file, data);
+                break;
+            case 2:
+                displayFile(&file);
+                break;
+            case 3:
+                printf("Enter block number to access: ");
+                scanf("%d", &blockNumber);
+                accessBlock(&file, blockNumber);
+                break;
+            case 4:
+                exit(0);
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    }
+
+    return 0;
+}
