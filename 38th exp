@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int n, head, diskSize, direction;
+    
+    printf("Enter the number of disk requests: ");
+    scanf("%d", &n);
+
+    int requests[n];
+    printf("Enter the disk request sequence: ");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &requests[i]);
+
+    printf("Enter initial head position: ");
+    scanf("%d", &head);
+
+    printf("Enter disk size (number of cylinders): ");
+    scanf("%d", &diskSize);
+
+    printf("Enter initial head direction (0 for left, 1 for right): ");
+    scanf("%d", &direction);
+
+    int left[n + 1], right[n + 1];
+    int lcount = 0, rcount = 0;
+    int totalSeek = 0;
+
+    // Separate requests into left and right of head
+    for (int i = 0; i < n; i++) {
+        if (requests[i] < head)
+            left[lcount++] = requests[i];
+        else
+            right[rcount++] = requests[i];
+    }
+
+    // Add the end of disk depending on direction
+    if (direction == 0)
+        left[lcount++] = 0;           // head goes to left end
+    else
+        right[rcount++] = diskSize - 1; // head goes to right end
+
+    // Sort left in descending order and right in ascending order
+    for (int i = 0; i < lcount-1; i++)
+        for (int j = i+1; j < lcount; j++)
+            if (left[i] < left[j]) { int temp = left[i]; left[i] = left[j]; left[j] = temp; }
+
+    for (int i = 0; i < rcount-1; i++)
+        for (int j = i+1; j < rcount; j++)
+            if (right[i] > right[j]) { int temp = right[i]; right[i] = right[j]; right[j] = temp; }
+
+    printf("\nSCAN Disk Scheduling Order:\n");
+    printf("%d -> ", head);
+
+    if (direction == 1) { // moving right first
+        for (int i = 0; i < rcount; i++) {
+            totalSeek += abs(right[i] - head);
+            head = right[i];
+            printf("%d", head);
+            if (i != rcount - 1 || lcount > 0) printf(" -> ");
+        }
+        for (int i = 0; i < lcount; i++) {
+            totalSeek += abs(left[i] - head);
+            head = left[i];
+            printf("%d", head);
+            if (i != lcount - 1) printf(" -> ");
+        }
+    } else { // moving left first
+        for (int i = 0; i < lcount; i++) {
+            totalSeek += abs(left[i] - head);
+            head = left[i];
+            printf("%d", head);
+            if (i != lcount - 1 || rcount > 0) printf(" -> ");
+        }
+        for (int i = 0; i < rcount; i++) {
+            totalSeek += abs(right[i] - head);
+            head = right[i];
+            printf("%d", head);
+            if (i != rcount - 1) printf(" -> ");
+        }
+    }
+
+    printf("\n\nTotal Seek Time: %d\n", totalSeek);
+    printf("Average Seek Time: %.2f\n", (float)totalSeek / n);
+
+    return 0;
+}
