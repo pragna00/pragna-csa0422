@@ -1,0 +1,95 @@
+#include <stdio.h>
+
+int main() {
+    int n, frames, i, j, k, pageFaults = 0;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &n);
+
+    int pages[n];
+    printf("Enter the page reference string: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &pages[i]);
+
+    printf("Enter number of frames: ");
+    scanf("%d", &frames);
+
+    int mem[frames];
+    for (i = 0; i < frames; i++)
+        mem[i] = -1; // Initialize memory frames
+
+    printf("\nPage Replacement Process (Optimal):\n");
+    printf("Page -> Memory Frames\n");
+
+    for (i = 0; i < n; i++) {
+        int page = pages[i];
+        int found = 0;
+
+        // Check if page is already in memory
+        for (j = 0; j < frames; j++) {
+            if (mem[j] == page) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            pageFaults++;
+
+            // Check for empty frame
+            int emptyIndex = -1;
+            for (j = 0; j < frames; j++) {
+                if (mem[j] == -1) {
+                    emptyIndex = j;
+                    break;
+                }
+            }
+
+            if (emptyIndex != -1) {
+                mem[emptyIndex] = page;
+            } else {
+                // Find the page to replace using Optimal strategy
+                int farthest = -1;
+                int replaceIndex = -1;
+
+                for (j = 0; j < frames; j++) {
+                    int nextUse = -1;
+                    for (k = i + 1; k < n; k++) {
+                        if (mem[j] == pages[k]) {
+                            nextUse = k;
+                            break;
+                        }
+                    }
+
+                    if (nextUse == -1) {
+                        replaceIndex = j; // Not used again, replace immediately
+                        break;
+                    }
+
+                    if (nextUse > farthest) {
+                        farthest = nextUse;
+                        replaceIndex = j;
+                    }
+                }
+
+                mem[replaceIndex] = page;
+            }
+        }
+
+        // Print current memory state
+        printf("%d\t", page);
+        for (j = 0; j < frames; j++) {
+            if (mem[j] != -1)
+                printf("%d ", mem[j]);
+            else
+                printf("- ");
+        }
+        if (!found)
+            printf("<-- Page Fault");
+        printf("\n");
+    }
+
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+
+    return 0;
+}
