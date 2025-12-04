@@ -1,0 +1,85 @@
+#include <stdio.h>
+
+int main() {
+    int n, frames, i, j, k, pageFaults = 0;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &n);
+
+    int pages[n];
+    printf("Enter the page reference string: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &pages[i]);
+
+    printf("Enter number of frames: ");
+    scanf("%d", &frames);
+
+    int mem[frames];
+    int lastUsed[frames]; // Tracks last used index of each frame
+
+    // Initialize frames and last used array
+    for (i = 0; i < frames; i++) {
+        mem[i] = -1;
+        lastUsed[i] = -1;
+    }
+
+    printf("\nPage Replacement Process (LRU):\n");
+    printf("Page -> Memory Frames\n");
+
+    for (i = 0; i < n; i++) {
+        int page = pages[i];
+        int found = 0;
+
+        // Check if page is already in memory
+        for (j = 0; j < frames; j++) {
+            if (mem[j] == page) {
+                found = 1;
+                lastUsed[j] = i; // Update last used
+                break;
+            }
+        }
+
+        if (!found) {
+            pageFaults++;
+
+            // Find an empty frame
+            int emptyIndex = -1;
+            for (j = 0; j < frames; j++) {
+                if (mem[j] == -1) {
+                    emptyIndex = j;
+                    break;
+                }
+            }
+
+            if (emptyIndex != -1) {
+                mem[emptyIndex] = page;
+                lastUsed[emptyIndex] = i;
+            } else {
+                // Find the least recently used page
+                int lruIndex = 0;
+                for (j = 1; j < frames; j++) {
+                    if (lastUsed[j] < lastUsed[lruIndex])
+                        lruIndex = j;
+                }
+                mem[lruIndex] = page;
+                lastUsed[lruIndex] = i;
+            }
+        }
+
+        // Print current memory state
+        printf("%d\t", page);
+        for (j = 0; j < frames; j++) {
+            if (mem[j] != -1)
+                printf("%d ", mem[j]);
+            else
+                printf("- ");
+        }
+        if (!found)
+            printf("<-- Page Fault");
+        printf("\n");
+    }
+
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+
+    return 0;
+}
