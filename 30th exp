@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <pthread.h>
+
+void* threadFunction(void* arg) {
+    printf("Hello from thread! Thread ID: %lu\n", pthread_self());
+    return NULL;
+}
+
+int main() {
+    pthread_t tid;
+
+    // Create a thread
+    if (pthread_create(&tid, NULL, threadFunction, NULL) != 0) {
+        printf("Thread creation failed\n");
+        return 1;
+    }
+
+    printf("Thread created successfully. Main thread ID: %lu\n", pthread_self());
+    pthread_exit(NULL); // Wait for thread to finish
+}
+
+
+#include <stdio.h>
+#include <pthread.h>
+
+void* threadFunction(void* arg) {
+    printf("Thread running: ID = %lu\n", pthread_self());
+    return (void*) 42; // Return value from thread
+}
+
+int main() {
+    pthread_t tid;
+    void* retval;
+
+    pthread_create(&tid, NULL, threadFunction, NULL);
+
+    // Wait for the thread to finish and get return value
+    pthread_join(tid, &retval);
+    printf("Thread joined. Return value = %ld\n", (long)retval);
+
+    return 0;
+}
+
+
+#include <stdio.h>
+#include <pthread.h>
+
+void* threadFunction(void* arg) {
+    printf("Inside thread. Thread ID: %lu\n", pthread_self());
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t tid;
+
+    pthread_create(&tid, NULL, threadFunction, NULL);
+
+    // Compare thread IDs
+    if (pthread_equal(tid, pthread_self())) {
+        printf("Thread IDs are equal.\n");
+    } else {
+        printf("Thread IDs are not equal.\n");
+    }
+
+    pthread_join(tid, NULL);
+    return 0;
+}
