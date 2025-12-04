@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_BLOCKS 100
+#define BLOCK_SIZE 50
+
+typedef struct Block {
+    int blockNumber;
+    char data[BLOCK_SIZE];
+    struct Block *next;
+} Block;
+
+typedef struct {
+    char fileName[50];
+    Block *start; // pointer to first block
+    Block *end;   // pointer to last block
+    int blockCount;
+} File;
+
+// Function to create a file
+void createFile(File *file, char *name) {
+    strcpy(file->fileName, name);
+    file->start = NULL;
+    file->end = NULL;
+    file->blockCount = 0;
+    printf("File '%s' created successfully.\n", name);
+}
+
+// Function to add a block to the file
+void addBlock(File *file, int blockNumber, char *data) {
+    Block *newBlock = (Block*) malloc(sizeof(Block));
+    newBlock->blockNumber = blockNumber;
+    strcpy(newBlock->data, data);
+    newBlock->next = NULL;
+
+    if (file->start == NULL) {
+        file->start = newBlock;
+        file->end = newBlock;
+    } else {
+        file->end->next = newBlock;
+        file->end = newBlock;
+    }
+    file->blockCount++;
+    printf("Block %d added with data: %s\n", blockNumber, data);
+}
+
+// Function to display the file blocks
+void displayFile(File *file) {
+    printf("\nFile: %s\n", file->fileName);
+    printf("Linked List of Blocks:\n");
+
+    Block *temp = file->start;
+    while (temp != NULL) {
+        printf("Block %d: %s -> ", temp->blockNumber, temp->data);
+        temp = temp->next;
+    }
+    printf("NULL\n");
+}
+
+// Function to access a specific block by position (1-based)
+void accessBlock(File *file, int position) {
+    if (position <= 0 || position > file->blockCount) {
+        printf("Invalid block position.\n");
+        return;
+    }
+    Block *temp = file->start;
+    for (int i = 1; i < position; i++) {
+        temp = temp->next;
+    }
+    printf("Accessing Block %d: %s\n", temp->blockNumber, temp->data);
+}
+
+int main() {
+    File file;
+    char fileName[50], data[BLOCK_SIZE];
+    int choice, blockNumber, position;
+
+    printf("Enter file name to create: ");
+    scanf("%s", fileName);
+    createFile(&file, fileName);
+
+    while (1) {
+        printf("\n--- Linked File Allocation Menu ---\n");
+        printf("1. Add Block\n");
+        printf("2. Display File Blocks\n");
+        printf("3. Access a Block by Position\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter block number to add: ");
+                scanf("%d", &blockNumber);
+                printf("Enter data for the block: ");
+                getchar(); // consume newline
+                fgets(data, sizeof(data), stdin);
+                data[strcspn(data, "\n")] = '\0'; // remove newline
+                addBlock(&file, blockNumber, data);
+                break;
+            case 2:
+                displayFile(&file);
+                break;
+            case 3:
+                printf("Enter block position to access: ");
+                scanf("%d", &position);
+                accessBlock(&file, position);
+                break;
+            case 4:
+                exit(0);
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    }
+
+    return 0;
+}
