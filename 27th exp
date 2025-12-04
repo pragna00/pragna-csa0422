@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>      // opendir, readdir, closedir
+#include <sys/stat.h>    // stat
+#include <unistd.h>      // getcwd
+#include <string.h>
+#include <pwd.h>         // getpwuid
+#include <grp.h>         // getgrgid
+#include <time.h>        // ctime
+
+// Function to display file permissions
+void printPermissions(mode_t mode) {
+    printf( (S_ISDIR(mode)) ? "d" : "-");
+    printf( (mode & S_IRUSR) ? "r" : "-");
+    printf( (mode & S_IWUSR) ? "w" : "-");
+    printf( (mode & S_IXUSR) ? "x" : "-");
+    printf( (mode & S_IRGRP) ? "r" : "-");
+    printf( (mode & S_IWGRP) ? "w" : "-");
+    printf( (mode & S_IXGRP) ? "x" : "-");
+    printf( (mode & S_IROTH) ? "r" : "-");
+    printf( (mode & S_IWOTH) ? "w" : "-");
+    printf( (mode & S_IXOTH) ? "x" : "-");
+    printf(" ");
+}
+
+int main(int argc, char *argv[]) {
+    char dirName[256];
+    DIR *dir;
+    struct dirent *entry;
+    struct stat fileStat;
+    char path[512];
+
+    // Use current directory if no argument provided
+    if (argc == 1) {
+        getcwd(dirName, sizeof(dirName));
+    } else {
+        strcpy(dirName, argv[1]);
+    }
+
+    dir = opendir(dirName);
+    if (dir == NULL) {
+        perror("opendir failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Listing files in directory: %s\n", dirName);
+    printf("Permissions\tOwner\tGroup\tSize\tModified Time\tName\n");
+
+    while ((entry = readdir(dir)) != NULL) {
+        snprintf(path, sizeof(path), "%s/%s", dirName, entry->d_name);
+        if (stat(path, &fileStat) == -1) {
+            perror("stat failed");
+            continue;
+        }
+
+        // Print file permissions
+        printPermissions(fileStat.st_mode);
+
+        // Print owner and group
+        printf("%s\t", getpwuid(fileStat.st_uid)->pw_name);
+        printf("%s\t", getgrgid(fileStat.st_gid)->gr_name);
+
+        // Print file size
+        printf("%ld\t", fileStat.st_size);
+
+        // Print last modified time
+        printf("%s\t", ctime(&fileStat.st_mtime));
+
+        // Print file name
+        printf("%s\n", entry->d_name);
+    }
+
+    closedir(dir);
+    return 0;
+}
